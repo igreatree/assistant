@@ -35,6 +35,11 @@ services:
         ollama pull mistral &&
         ollama serve
       "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   node-api:
@@ -45,7 +50,8 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
