@@ -17,7 +17,6 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=admin@appic.online"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "3000:3000"
       - "80:80"
       - "443:443"
       - "8080:8080"
