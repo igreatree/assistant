@@ -1,7 +1,9 @@
 import express from "express";
 import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
