@@ -39,8 +39,7 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
-      ollama:
-        condition: service_healthy
+      - ollama
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
