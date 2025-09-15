@@ -4,6 +4,10 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
+server.keepAliveTimeout = 0;
+server.headersTimeout = 0;
+server.requestTimeout = 0;
+
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 
 // POST /chat { "prompt": "Привет!" }
@@ -20,9 +24,11 @@ app.post("/chat", async (req, res) => {
         }),
     });
 
-    // пробрасываем ответ как текстовый поток
     res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
 
     ollamaRes.body.on("data", (chunk) => {
         console.log({ chunk });
@@ -44,4 +50,6 @@ const server = app.listen(3000, () =>
     console.log("🤖 AI API запущено на http://localhost:3000")
 );
 
-server.setTimeout(0);
+server.keepAliveTimeout = 0;
+server.headersTimeout = 0;
+server.requestTimeout = 0;
