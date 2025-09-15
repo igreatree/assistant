@@ -9,6 +9,7 @@ const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 // POST /chat { "prompt": "Привет!" }
 app.post("/chat", async (req, res) => {
     const { prompt } = req.body;
+    let fullResponse = "";
 
     const ollamaRes = await fetch(`${OLLAMA_HOST}/api/generate`, {
         method: "POST",
@@ -20,26 +21,16 @@ app.post("/chat", async (req, res) => {
         }),
     });
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache, no-transform");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no");
-    res.flushHeaders();
-
-    ollamaRes.body.on("data", (chunk) => {
-        console.log({ chunk });
+    for await (const chunk of ollamaRes.body) {
         const lines = chunk.toString().trim().split("\n");
         for (const line of lines) {
             if (!line) continue;
             const data = JSON.parse(line);
-            if (data.response) {
-                res.write(data.response);
-            }
-            if (data.done) {
-                res.end();
-            }
+            if (data.response) fullResponse += data.response;
         }
-    });
+    }
+
+    res.json({ text: fullResponse });
 });
 
 app.listen(3000, () =>
