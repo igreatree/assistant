@@ -10,18 +10,32 @@ const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 app.post("/chat", async (req, res) => {
     const { prompt } = req.body;
 
-    const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
+    const ollamaRes = await fetch(`${OLLAMA_HOST}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            model: "mistral", // можно поменять на llama3 или другую
+            model: "mistral",
             prompt,
+            stream: true,
         }),
     });
 
-    const data = await response.json();
-    // res.json(data);
-    res.send(data);
+    // пробрасываем ответ как текстовый поток
+    res.setHeader("Content-Type", "text/event-stream");
+
+    ollamaRes.body.on("data", (chunk) => {
+        const lines = chunk.toString().trim().split("\n");
+        for (const line of lines) {
+            if (!line) continue;
+            const data = JSON.parse(line);
+            if (data.response) {
+                res.write(data.response);
+            }
+            if (data.done) {
+                res.end();
+            }
+        }
+    });
 });
 
 app.listen(3000, () =>
