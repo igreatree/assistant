@@ -62,7 +62,7 @@ app.post("/chat/stream", async (req, res) => {
                 res.write(`${JSON.stringify({ token: data.response })}\n\n`);
             }
             if (data.done) {
-                res.write("{token: '', done: true}\n\n");
+                res.write('{"token": "", "done": true}\n\n');
                 res.end();
                 return;
             }
@@ -71,5 +71,5 @@ app.post("/chat/stream", async (req, res) => {
 });
 
 app.listen(3000, () =>
-    console.log("🤖 AI API запущено на http://localhost:3000")
+    console.log("🤖 AI API запущено")
 );
