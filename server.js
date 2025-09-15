@@ -59,10 +59,10 @@ app.post("/chat/stream", async (req, res) => {
             if (!line.trim()) continue;
             const data = JSON.parse(line);
             if (data.response) {
-                res.write(JSON.stringify({ token: data.response }));
+                res.write(`${JSON.stringify({ token: data.response })}\n\n`);
             }
             if (data.done) {
-                res.write("event: done\ndata: {}\n\n");
+                res.write("{token: '', done: true}\n\n");
                 res.end();
                 return;
             }
