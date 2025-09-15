@@ -22,8 +22,10 @@ app.post("/chat", async (req, res) => {
 
     // пробрасываем ответ как текстовый поток
     res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Connection", "keep-alive");
 
     ollamaRes.body.on("data", (chunk) => {
+        console.log({ chunk });
         const lines = chunk.toString().trim().split("\n");
         for (const line of lines) {
             if (!line) continue;
