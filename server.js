@@ -8,7 +8,6 @@ app.use(express.json());
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 
-// POST /chat { "prompt": "Привет!" }
 app.post("/chat", async (req, res) => {
     const { prompt } = req.body;
     let fullResponse = "";
@@ -38,7 +37,6 @@ app.post("/chat", async (req, res) => {
 app.post("/chat/stream", async (req, res) => {
     const { prompt } = req.body;
 
-    // SSE-заголовки
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
