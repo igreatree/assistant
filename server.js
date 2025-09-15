@@ -20,7 +20,8 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await response.json();
-    res.json(data);
+    // res.json(data);
+    res.send(data);
 });
 
 app.listen(3000, () =>
