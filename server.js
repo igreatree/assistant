@@ -42,10 +42,6 @@ app.post("/chat", async (req, res) => {
     });
 });
 
-const server = app.listen(3000, () =>
+app.listen(3000, () =>
     console.log("🤖 AI API запущено на http://localhost:3000")
 );
-
-server.keepAliveTimeout = 0;
-server.headersTimeout = 0;
-server.requestTimeout = 0;
