@@ -17,8 +17,17 @@ app.post("/chat", async (req, res) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             model: "mistral",
-            prompt,
             stream: true,
+            messages: [
+                {
+                    role: "system",
+                    content: "Отвечай очень кратко, максимум 1-2 предложения."
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
         }),
     });
 
