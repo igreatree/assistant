@@ -28,6 +28,9 @@ app.post("/chat", async (req, res) => {
                     content: prompt
                 }
             ],
+            options: {
+                num_predict: 30
+            }
         }),
     });
 
