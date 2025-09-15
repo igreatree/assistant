@@ -4,10 +4,6 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
-server.keepAliveTimeout = 0;
-server.headersTimeout = 0;
-server.requestTimeout = 0;
-
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 
 // POST /chat { "prompt": "Привет!" }
