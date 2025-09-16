@@ -44,43 +44,27 @@ app.post("/chat", async (req, res) => {
             }),
         });
 
-        // for await (const chunk of ollamaRes.body) {
-        //     const lines = chunk.toString().trim().split("\n");
-        //     for (const line of lines) {
-        //         if (!line) continue;
-        //         const data = JSON.parse(line);
-        //         if (data.response) fullResponse += data.response;
-        //     }
-        // }
-
-        // res.json({ text: fullResponse });
-        if (!ollamaRes.body) {
-            res.end("Ошибка: нет ollamaRes.body");
-            return;
-        }
-
-        const reader = ollamaRes.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
+        ollamaRes.body.on("data", (chunk) => {
+            const lines = chunk.toString().split("\n");
             for (const line of lines) {
                 if (!line.trim()) continue;
                 const json = JSON.parse(line);
                 if (json.message?.content) {
-                    res.write(json.message.content);
+                    fullResponse += json.message.content;
                 }
             }
-        }
-        res.end("\n✅ Генерация завершена\n");
+        });
+
+        ollamaRes.body.on("end", () => {
+            res.json({ text: fullResponse });
+            res.end();
+        });
+
+        ollamaRes.body.on("error", (err) => {
+            console.error("Ошибка:", err);
+            res.end("Ошибка: " + err.message);
+        });
+
     } catch (err) {
         if (err.name === "AbortError") {
             res.end("\n⏹ Генерация остановлена\n");
@@ -93,114 +77,68 @@ app.post("/chat", async (req, res) => {
     }
 });
 
-// app.post("/chat/stream", async (req, res) => {
-//     if (controller) {
-//         return res.status(400).send("⚠ Генерация уже идёт. Сначала остановите её.");
-//     }
-//     controller = new AbortController();
-
-//     try {
-//         const { prompt } = req.body;
-//         res.setHeader("Content-Type", "text/event-stream");
-//         res.setHeader("Cache-Control", "no-cache, no-transform");
-//         res.setHeader("Connection", "keep-alive");
-//         res.flushHeaders();
-
-//         const ollamaRes = await fetch("http://ollama:11434/api/chat", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({
-//                 model: "mistral",
-//                 stream: true,
-//                 messages: [
-//                     {
-//                         role: "system",
-//                         content: "Отвечай очень кратко, максимум 1-2 предложения."
-//                     },
-//                     {
-//                         role: "user",
-//                         content: prompt
-//                     }
-//                 ],
-//                 // options: {
-//                 //     num_predict: 30
-//                 // },
-//             }),
-//             signal: controller.signal,
-//         });
-
-//         let buffer = "";
-//         for await (const chunk of ollamaRes.body) {
-//             buffer += chunk.toString();
-//             const lines = buffer.split("\n");
-//             buffer = lines.pop() || "";
-//             for (const line of lines) {
-//                 if (!line.trim()) continue;
-//                 const data = JSON.parse(line);
-//                 if (data.response) {
-//                     res.write(`${JSON.stringify({ token: data.response })}\n\n`);
-//                 }
-//                 if (data.done) {
-//                     res.write('{"token": "", "done": true}\n\n');
-//                     res.end();
-//                     return;
-//                 }
-//             }
-//         }
-//     } catch (err) {
-//         if (err.name === "AbortError") {
-//             res.end("\n⏹ Генерация остановлена\n");
-//         } else {
-//             console.error(err);
-//             res.status(500).send("Ошибка: " + err.message);
-//         }
-//     } finally {
-//         controller = null;
-//     }
-// });
-
-
 app.post("/chat/stream", async (req, res) => {
-    const { prompt } = req.body;
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Transfer-Encoding", "chunked");
+    if (controller) {
+        return res.status(400).send("⚠ Генерация уже идёт. Сначала остановите её.");
+    }
+    controller = new AbortController();
 
-    const ollamaRes = await fetch("http://ollama:11434/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            model: "mistral",
-            messages: [
-                { role: "system", content: "Отвечай кратко" },
-                { role: "user", content: prompt }
-            ],
-            stream: true
-        })
-    });
+    try {
+        const { prompt } = req.body;
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache, no-transform");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders();
 
-    ollamaRes.body.on("data", (chunk) => {
-        const lines = chunk.toString().split("\n");
-        for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
+        const ollamaRes = await fetch("http://ollama:11434/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "mistral",
+                stream: true,
+                messages: [
+                    {
+                        role: "system",
+                        content: "Отвечай очень кратко."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+            }),
+            signal: controller.signal,
+        });
+
+        ollamaRes.body.on("data", (chunk) => {
+            const lines = chunk.toString().split("\n");
+            for (const line of lines) {
+                if (!line.trim()) continue;
                 const json = JSON.parse(line);
                 if (json.message?.content) {
                     res.write(json.message.content);
                 }
-            } catch {
-                // игнорируем неполные куски
             }
+        });
+
+        ollamaRes.body.on("end", () => {
+            res.end();
+        });
+
+        ollamaRes.body.on("error", (err) => {
+            console.error("Ошибка:", err);
+            res.end("Ошибка: " + err.message);
+        });
+    } catch (err) {
+        if (err.name === "AbortError") {
+            res.end("\n⏹ Генерация остановлена\n");
+        } else {
+            console.error(err);
+            res.status(500).send("Ошибка: " + err.message);
         }
-    });
-
-    ollamaRes.body.on("end", () => {
-        res.end("\n✅ Генерация завершена\n");
-    });
-
-    ollamaRes.body.on("error", (err) => {
-        console.error("Ошибка:", err);
-        res.end("Ошибка: " + err.message);
-    });
+    } finally {
+        controller = null;
+    }
 });
 
 // остановка генерации
