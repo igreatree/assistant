@@ -44,17 +44,43 @@ app.post("/chat", async (req, res) => {
             }),
         });
 
-        for await (const chunk of ollamaRes.body) {
-            const lines = chunk.toString().trim().split("\n");
-            for (const line of lines) {
-                if (!line) continue;
-                const data = JSON.parse(line);
-                if (data.response) fullResponse += data.response;
-            }
+        // for await (const chunk of ollamaRes.body) {
+        //     const lines = chunk.toString().trim().split("\n");
+        //     for (const line of lines) {
+        //         if (!line) continue;
+        //         const data = JSON.parse(line);
+        //         if (data.response) fullResponse += data.response;
+        //     }
+        // }
+
+        // res.json({ text: fullResponse });
+        if (!ollamaRes.body) {
+            res.end("Ошибка: нет ollamaRes.body");
+            return;
         }
 
-        res.json({ text: fullResponse });
+        const reader = ollamaRes.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
 
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            let lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                const json = JSON.parse(line);
+                if (json.message?.content) {
+                    res.write(json.message.content);
+                }
+            }
+        }
+        res.end("\n✅ Генерация завершена\n");
     } catch (err) {
         if (err.name === "AbortError") {
             res.end("\n⏹ Генерация остановлена\n");
