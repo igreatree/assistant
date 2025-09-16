@@ -37,9 +37,9 @@ app.post("/chat", async (req, res) => {
                         content: prompt
                     }
                 ],
-                options: {
-                    num_predict: 30
-                },
+                // options: {
+                //     num_predict: 30
+                // },
                 signal: controller.signal,
             }),
         });
@@ -96,9 +96,9 @@ app.post("/chat/stream", async (req, res) => {
                         content: prompt
                     }
                 ],
-                options: {
-                    num_predict: 30
-                },
+                // options: {
+                //     num_predict: 30
+                // },
             }),
             signal: controller.signal,
         });
