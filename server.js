@@ -116,7 +116,7 @@ app.post("/chat/stream", async (req, res) => {
                 if (!line.trim()) continue;
                 const json = JSON.parse(line);
                 if (json.message?.content) {
-                    res.write({ text: json.message.content });
+                    res.write(`${JSON.stringify({ text: json.message.content })}\n\n`);
                 }
             }
         });
