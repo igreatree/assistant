@@ -122,6 +122,7 @@ app.post("/chat/stream", async (req, res) => {
         });
 
         ollamaRes.body.on("end", () => {
+            res.write('{"text": "", "done": true}\n\n');
             res.end();
         });
 
