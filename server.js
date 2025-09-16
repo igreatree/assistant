@@ -56,20 +56,24 @@ app.post("/chat", async (req, res) => {
         });
 
         ollamaRes.body.on("end", () => {
+            controller = null;
             res.json({ text: fullResponse });
             res.end();
         });
 
         ollamaRes.body.on("error", (err) => {
+            controller = null;
             console.error("Ошибка:", err);
             res.end("Ошибка: " + err.message);
         });
 
     } catch (err) {
         if (err.name === "AbortError") {
+            controller = null;
             res.end("\n⏹ Генерация остановлена\n");
         } else {
             console.error(err);
+            controller = null;
             res.status(500).send("Ошибка: " + err.message);
         }
     }
@@ -123,19 +127,23 @@ app.post("/chat/stream", async (req, res) => {
         });
 
         ollamaRes.body.on("end", () => {
+            controller = null;
             res.write('{"text": "", "done": true}\n\n');
             res.end();
         });
 
         ollamaRes.body.on("error", (err) => {
+            controller = null;
             console.error("Ошибка:", err);
             res.end("Ошибка: " + err.message);
         });
     } catch (err) {
         if (err.name === "AbortError") {
+            controller = null;
             res.end("\n⏹ Генерация остановлена\n");
         } else {
             console.error(err);
+            controller = null;
             res.status(500).send("Ошибка: " + err.message);
         }
     }
