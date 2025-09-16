@@ -37,9 +37,9 @@ app.post("/chat", async (req, res) => {
                         content: prompt
                     }
                 ],
-                // options: {
-                //     num_predict: 30
-                // },
+                options: {
+                    num_predict: 30
+                },
                 signal: controller.signal,
             }),
         });
@@ -97,13 +97,16 @@ app.post("/chat/stream", async (req, res) => {
                 messages: [
                     {
                         role: "system",
-                        content: "Отвечай очень кратко."
+                        content: "Отвечай очень кратко, максимум 1-2 предложения."
                     },
                     {
                         role: "user",
                         content: prompt
                     }
                 ],
+                options: {
+                    num_predict: 30
+                },
             }),
             signal: controller.signal,
         });
