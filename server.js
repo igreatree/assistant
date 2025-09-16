@@ -145,6 +145,7 @@ app.post("/chat/stream", async (req, res) => {
 app.get("/chat/stop", (req, res) => {
     if (controller) {
         controller.abort(); // прерываем
+        controller = null;
         return res.send("⏹ Генерация остановлена");
     } else {
         return res.send("⚠ Сейчас ничего не генерируется");
