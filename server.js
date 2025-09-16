@@ -38,7 +38,7 @@ app.post("/chat", async (req, res) => {
                     }
                 ],
                 options: {
-                    num_predict: 20
+                    num_predict: 30
                 },
                 signal: controller.signal,
             }),
@@ -83,7 +83,24 @@ app.post("/chat/stream", async (req, res) => {
         const ollamaRes = await fetch("http://ollama:11434/api/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model: "mistral", prompt, stream: true }),
+            body: JSON.stringify({
+                model: "mistral",
+                stream: true,
+                messages: [
+                    {
+                        role: "system",
+                        content: "Отвечай очень кратко, максимум 1-2 предложения."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                options: {
+                    num_predict: 30
+                },
+            }),
+            signal: controller.signal,
         });
 
         let buffer = "";
