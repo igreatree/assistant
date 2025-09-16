@@ -21,7 +21,7 @@ app.post("/chat", async (req, res) => {
         const { prompt } = req.body;
         let fullResponse = "";
 
-        const ollamaRes = await fetch(`${OLLAMA_HOST}/api/generate`, {
+        const ollamaRes = await fetch(`${OLLAMA_HOST}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -80,7 +80,7 @@ app.post("/chat/stream", async (req, res) => {
         res.setHeader("Connection", "keep-alive");
         res.flushHeaders();
 
-        const ollamaRes = await fetch("http://ollama:11434/api/generate", {
+        const ollamaRes = await fetch("http://ollama:11434/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
